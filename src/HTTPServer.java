@@ -1,0 +1,64 @@
+import HTTP.*;
+import Simulation.SimulationState;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
+/**
+ * The class that implements the HTTP server.
+ */
+public class HTTPServer {
+    /**
+     * The default port used for the HTTP server.
+     */
+    static final private int DEFAULT_PORT = 8080;
+
+    /**
+     * Returns the port number of the HTTP server as a string.
+     * @return Port number.
+     */
+    private static int getPort() {
+        String portString = System.getenv("PORT");
+
+        return portString != null ? Integer.parseInt(portString) : DEFAULT_PORT;
+    }
+
+    /**
+     * Creates an HTTP server and returns it.
+     * @return HTTPServer.
+     */
+    private static HttpServer createServer()  {
+        try {
+            return HttpServer.create(new InetSocketAddress(getPort()), 1024);
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    /**
+     * Creates the necessary HTTPContext for all the endpoints in DingNet and starts the HTTP server.
+     * @param args contains command line arguments.
+     */
+    public static void main(String[] args)  {
+        HttpServer server = createServer();
+        SimulationState state = new SimulationState();
+
+        System.out.println("Server running on port " + getPort());
+
+        server.createContext("/", new BaseHandler());
+
+        server.createContext("/monitor", new MonitorHandler(state));
+        server.createContext("/monitor_schema", new MonitorSchemaHandler(state));
+
+        server.createContext("/execute", new ExecuteHandler(state));
+        server.createContext("/execute_schema", new ExecuteSchemaHandler());
+
+        server.createContext("/adaptation_options", new AdaptationOptionsHandler());
+        server.createContext("/adaptation_options_schema", new AdaptationOptionsSchemaHandler());
+
+        server.createContext("/start_run", new StartRunHandler(state));
+
+        server.start();
+    }
+}
