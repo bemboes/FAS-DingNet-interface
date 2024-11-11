@@ -1,6 +1,6 @@
 import HTTP.*;
-import Simulation.SimulationState;
 import com.sun.net.httpserver.HttpServer;
+import models.SimulationState;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -42,22 +42,23 @@ public class HTTPServer {
      */
     public static void main(String[] args)  {
         HttpServer server = createServer();
-        SimulationState state = new SimulationState();
+        SimulationState simulationState = new SimulationState();
 
         System.out.println("Server running on port " + getPort());
 
         server.createContext("/", new BaseHandler());
 
-        server.createContext("/monitor", new MonitorHandler(state));
-        server.createContext("/monitor_schema", new MonitorSchemaHandler(state));
+        server.createContext("/monitor", new MonitorHandler(simulationState));
+        server.createContext("/monitor_schema", new MonitorSchemaHandler());
 
-        server.createContext("/execute", new ExecuteHandler(state));
+        server.createContext("/execute", new ExecuteHandler(simulationState));
         server.createContext("/execute_schema", new ExecuteSchemaHandler());
 
         server.createContext("/adaptation_options", new AdaptationOptionsHandler());
         server.createContext("/adaptation_options_schema", new AdaptationOptionsSchemaHandler());
 
-        server.createContext("/start_run", new StartRunHandler(state));
+        server.createContext("/start_run", new StartRunHandler(simulationState));
+        server.createContext("/stop_run", new StopRunHandler(simulationState));
 
         server.start();
     }

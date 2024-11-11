@@ -88,6 +88,19 @@ public class MoteState {
     private Integer startOffSet = null;
 
     /**
+     * The offset the mote has at the start.
+     * @since 1.0
+     */
+    private Integer packetSend = null;
+
+    /**
+     * The offset the mote has at the start.
+     * @since 1.0
+     */
+    private Integer packetLost = null;
+
+
+    /**
      * The distance to the nearest gateway.
      * @since 1.0
      */

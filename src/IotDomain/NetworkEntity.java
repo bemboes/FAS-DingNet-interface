@@ -3,6 +3,8 @@ package IotDomain;
 
 
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.Arrays;
@@ -213,7 +215,7 @@ public abstract class NetworkEntity implements Serializable{
      * @param transmission The transmission to receiveTransmission.
      * @Effect if the package has a high enough transmission power, it is added using packetStrengthHighEnough().
      */
-    public void receiveTransmission(LoraTransmission transmission){
+    public void receiveTransmission(LoraTransmission transmission) {
         if(packetStrengthHighEnough(transmission)){
             Boolean collision = false;
             for (LoraTransmission receivedTransmission: getAllReceivedTransmissions(getEnvironment().getNumberOfRuns()-1).keySet()) {
@@ -229,7 +231,6 @@ public abstract class NetworkEntity implements Serializable{
 
             }
         }
-
     }
 
     /**
@@ -371,6 +372,12 @@ public abstract class NetworkEntity implements Serializable{
         }
     }
 
+    @Getter
+    Integer numberOfSentPackets = 0;
+
+    @Getter
+    Integer numberOfLostPackets = 0;
+
     /**
      * A method which sends a message to all gateways in the environment
      * @param message The message to send.
@@ -391,6 +398,7 @@ public abstract class NetworkEntity implements Serializable{
             sentTransmissions.getLast().add(packetsToSend.getFirst());
             for (LoraTransmission packet : packetsToSend) {
                 packet.depart();
+                numberOfSentPackets++;
             }
         }
     }
@@ -402,7 +410,7 @@ public abstract class NetworkEntity implements Serializable{
      * @return true if the packets collide, false otherwise.
      */
     public Boolean collision(LoraTransmission a, LoraTransmission b){
-        if(a.getSpreadingFactor() == b.getSpreadingFactor()){
+        if(a.getSpreadingFactor().equals(b.getSpreadingFactor())) {
 
             if(a.getTransmissionPower() - b.getTransmissionPower() < getTransmissionPowerThreshold()){
 
@@ -422,11 +430,7 @@ public abstract class NetworkEntity implements Serializable{
      * @return
      */
     public Boolean packetStrengthHighEnough(LoraTransmission packet){
-        if(packet.getTransmissionPower() > -174 - 10*Math.log10(packet.getBandwidth())-(2.5*packet.getSpreadingFactor()-10)){
-            return true;
-        }
-        else
-            return false;
+        return packet.getTransmissionPower() > -174 - 10 * Math.log10(packet.getBandwidth()) - (2.5 * packet.getSpreadingFactor() - 10);
     }
 
     /**

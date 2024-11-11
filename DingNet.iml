@@ -18,7 +18,23 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" exported="" name="jfreechart-1.5.0" level="project" />
+    <orderEntry type="library" name="jfreechart-1.5.0" level="project" />
+    <orderEntry type="library" name="lombok" level="project" />
+    <orderEntry type="library" name="jackson-core-2.14.0" level="project" />
+    <orderEntry type="library" name="jackson-annotations-2.14.0" level="project" />
+    <orderEntry type="library" name="jackson-databind-2.14.0" level="project" />
+    <orderEntry type="library" name="commons-lang3-3.12.01" level="project" />
+    <orderEntry type="library" name="jfreechart-1.5.0-javadoc1" level="project" />
+    <orderEntry type="library" name="commons-logging-1.1.11" level="project" />
+    <orderEntry type="library" name="jsonschema-module-jackson-4.32.0" level="project" />
+    <orderEntry type="library" name="slf4j-api-2.0.9" level="project" />
+    <orderEntry type="library" name="slf4j-nop-2.0.9" level="project" />
+    <orderEntry type="library" name="jsonschema-generator-4.32.0" level="project" />
+    <orderEntry type="library" name="jsonschema-generator-4.32.01" level="project" />
+    <orderEntry type="library" name="jsonschema-module-jackson-4.32.01" level="project" />
+    <orderEntry type="library" name="classmate-1.6.0" level="project" />
+    <orderEntry type="library" name="jfreechart-1.5.0-javadoc" level="project" />
+    <orderEntry type="library" name="jxmapviewer2-2.4" level="project" />
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>

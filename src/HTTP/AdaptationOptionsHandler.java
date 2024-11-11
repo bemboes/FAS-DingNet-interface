@@ -31,7 +31,7 @@ public class AdaptationOptionsHandler implements HttpHandler {
         new AdaptationOptionModel(
                 "spreading_factor",
                 "Determines the duration of the communication",
-                0D,
+                7D,
                 12D
         ),
         new AdaptationOptionModel(

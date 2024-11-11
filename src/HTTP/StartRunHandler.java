@@ -1,10 +1,9 @@
 package HTTP;
 
-import Simulation.MainSimulation;
-import Simulation.SimulationState;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import Simulation.ScatteredSimulation;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import models.SimulationState;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,6 +19,8 @@ public class StartRunHandler implements HttpHandler {
      * @since 1.0
      */
     private final SimulationState simulationState;
+
+    private final static long DEFAULT_SEED = 0L;
 
     /**
      * An HTTP Response message {@code ALREADY_RUNNING} for when DingNet is already running.
@@ -46,6 +47,31 @@ public class StartRunHandler implements HttpHandler {
         this.simulationState = simulationState;
     }
 
+    private static class InvalidSeedException extends Exception {}
+
+    private static long extractSeed (String queryString) throws InvalidSeedException {
+        for (String query : queryString.split("&")) {
+            String[] queryParts = query.split("=");
+
+            if (queryParts.length != 2) {
+                continue;
+            }
+
+            String key = queryParts[0];
+            String value = queryParts[1];
+
+            if (key.equals("seed")) {
+                try {
+                    return Long.parseLong(value);
+                } catch (NumberFormatException e) {
+                    throw new InvalidSeedException();
+                }
+            }
+        }
+
+        return DEFAULT_SEED;
+    }
+
     /**
      * Starts the simulation of DingNet (if it wasn't running already).
      * The function also resets the SimulationState.
@@ -58,18 +84,28 @@ public class StartRunHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         boolean isRunning = this.simulationState.getIsRunning();
         HTTPResponse response = isRunning ? ALREADY_RUNNING : SIMULATION_STARTED;
+        long seed = DEFAULT_SEED;
 
-        if (!isRunning) {
-            this.simulationState.reset();
-            this.simulationState.setIsRunning(true);
-            new MainSimulation(this.simulationState).start();
+        String rawQuery = exchange.getRequestURI().getRawQuery();
+
+        if (rawQuery != null) {
+            try {
+                seed = extractSeed(rawQuery);
+            } catch (InvalidSeedException e) {
+                new HTTPResponse(
+                        HttpURLConnection.HTTP_BAD_REQUEST,
+                        "Invalid seed.\n"
+                ).send(exchange);
+                return;
+            }
         }
 
-        exchange.sendResponseHeaders(response.getCode(), response.getBody().length());
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBody().getBytes());
-        os.flush();
-        os.close();
-        exchange.close();
+        if (!isRunning) {
+            this.simulationState.setIsRunning(true);
+            this.simulationState.setShouldStop(false);
+            new ScatteredSimulation(this.simulationState, seed).start();
+        }
+
+        response.send(exchange);
     }
 }

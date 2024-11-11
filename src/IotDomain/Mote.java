@@ -1,6 +1,8 @@
 package IotDomain;
 
 
+import lombok.Getter;
+import lombok.Setter;
 import org.jxmapviewer.viewer.GeoPosition;
 
 import java.util.HashMap;
@@ -16,7 +18,7 @@ public class Mote extends NetworkEntity {
      * Returns the mote sensors of the mote.
      * @return The mote sensors of the mote.
      */
-    
+
     public LinkedList<MoteSensor> getSensors() {
         return moteSensors;
     }
@@ -24,38 +26,38 @@ public class Mote extends NetworkEntity {
     /**
      * A LinkedList MoteSensors representing all sensors on the mote.
      */
-    
+
     private LinkedList<MoteSensor> moteSensors = new LinkedList<>();
     /**
      * A LinkedList of GeoPositions representing the path the mote will follow.
      */
-    
+
     private LinkedList<GeoPosition> path;
 
     /**
      * An integer representing the energy level of the mote.
      */
-    
+
     private Integer energyLevel;
     /**
      * An integer representing the sampling rate of the mote.
      */
-    
+
     private Integer samplingRate;
     /**
      * An integer representing the number of requests for data of the mote.
      */
-    
+
     private Integer numberOfRequests;
     /**
      * A Double representing the movement speed of the mote.
      */
-    
+
     private Double movementSpeed;
     /**
      * An integer representing the start offset of the mote.
      */
-    
+
     private Integer startOffset;
 
     /**
@@ -74,7 +76,7 @@ public class Mote extends NetworkEntity {
      * @param movementSpeed The movement speed of this mote.
      * @param startOffset The start offset of this mote.
      */
-    
+
     public Mote(Long DevEUI, Integer xPos, Integer yPos, Environment environment, Integer transmissionPower,
                 Integer SF, LinkedList<MoteSensor> moteSensors, Integer energyLevel, LinkedList<GeoPosition> path, Integer samplingRate, Double movementSpeed, Integer startOffset){
        super(DevEUI, xPos,yPos, environment,transmissionPower,SF,1.0);
@@ -105,7 +107,7 @@ public class Mote extends NetworkEntity {
      * @param samplingRate The sampling rate of this mote.
      * @param movementSpeed The movement speed of this mote.
      */
-    
+
     public Mote(Long DevEUI, Integer xPos, Integer yPos, Environment environment, Integer transmissionPower,
                 Integer SF, LinkedList<MoteSensor> moteSensors, Integer energyLevel, LinkedList<GeoPosition> path, Integer samplingRate, Double movementSpeed){
         this(DevEUI,xPos,yPos, environment,transmissionPower,SF,moteSensors,energyLevel,path,samplingRate, movementSpeed,Math.abs((new Random()).nextInt(5)));
@@ -132,7 +134,7 @@ public class Mote extends NetworkEntity {
      * Returns the path of the mote.
      * @return The path of the mote.
      */
-    
+
     public LinkedList<GeoPosition> getPath() {
         return path;
     }
@@ -141,7 +143,7 @@ public class Mote extends NetworkEntity {
      * Sets the path of the mote to a given path.
      * @param path The path to set.
      */
-    
+
     public void setPath(LinkedList<GeoPosition> path) {
         this.path = path;
     }
@@ -173,7 +175,7 @@ public class Mote extends NetworkEntity {
      * Returns the energy level of the mote.
      * @return The energy level of the mote.
      */
-    
+
     public Integer getEnergyLevel(){
         return this.energyLevel;
     }
@@ -182,7 +184,7 @@ public class Mote extends NetworkEntity {
      * Sets the energy level of the mote.
      * @param energyLevel The energy level to set.
      */
-    
+
     public void setEnergyLevel(Integer energyLevel) {
         this.energyLevel = energyLevel;
     }
@@ -191,7 +193,7 @@ public class Mote extends NetworkEntity {
      * Sets the mote sensors of the mote.
      * @param moteSensors the mote sensors to set.
      */
-    
+
     public void setSensors(LinkedList<MoteSensor> moteSensors) {
         this.moteSensors = moteSensors;
     }
@@ -200,7 +202,7 @@ public class Mote extends NetworkEntity {
      * Returns the sampling rate of the mote.
      * @return The sampling rate of the mote.
      */
-    
+
     public Integer getSamplingRate() {
         return samplingRate;
     }
@@ -209,7 +211,7 @@ public class Mote extends NetworkEntity {
      * Returns the number of requests for data.
      * @return The number of requests for data.
      */
-    
+
     public Integer getNumberOfRequests() {
         return numberOfRequests;
     }
@@ -218,7 +220,7 @@ public class Mote extends NetworkEntity {
      * Sets the sampling rate of the mote.
      * @param samplingRate The sampling rate of the mote
      */
-    
+
     public void setSamplingRate(Integer samplingRate){
         this.samplingRate = samplingRate;
         setNumberOfRequests(getSamplingRate());
@@ -228,7 +230,7 @@ public class Mote extends NetworkEntity {
      * Sets the number of requests for data.
      * @param numberOfRequests The number of requests for data.
      */
-    
+
     private void setNumberOfRequests(Integer numberOfRequests) {
         this.numberOfRequests = numberOfRequests;
     }
@@ -253,7 +255,7 @@ public class Mote extends NetworkEntity {
      * Returns the movementSpeed of the mote.
      * @return The movementSpeed of the mote.
      */
-    
+
     public Double getMovementSpeed() {
         return movementSpeed;
     }
@@ -262,7 +264,7 @@ public class Mote extends NetworkEntity {
      * Sets the movement speed of the mote.
      * @param movementSpeed The movement speed of the mote.
      */
-    
+
     public void setMovementSpeed(Double movementSpeed) {
         this.movementSpeed = movementSpeed;
     }
@@ -271,8 +273,48 @@ public class Mote extends NetworkEntity {
      * Returns the start offset of the mote.
      * @return the start offset of the mote.
      */
-    
+
     public Integer getStartOffset(){
         return this.startOffset;
+    }
+
+    @Getter
+    @Setter
+    private Double shortestDistanceToGateway;
+
+    @Getter
+    @Setter
+    private Double highestReceivedSignal;
+
+    @Getter
+    @Setter
+    private Double packetLoss;
+
+    public Double calculatePacketLoss(Integer run) {
+        int receivedPackets = 0;
+
+        if (numberOfSentPackets == 0) {
+            return 0D;
+        }
+
+        for (Gateway gateway : getEnvironment().getGateways()) {
+            for (LoraTransmission receivedTransmission : gateway.getReceivedTransmissions(run)) {
+                if (receivedTransmission.getSender() == this ) {
+                    receivedPackets++;
+                }
+            }
+        }
+
+        for (Mote mote : getEnvironment().getMotes()) {
+            for (LoraTransmission receivedTransmission : mote.getReceivedTransmissions(run)) {
+                if (receivedTransmission.getSender() == this ) {
+                    receivedPackets++;
+                }
+            }
+        }
+
+        this.numberOfLostPackets = numberOfSentPackets - receivedPackets;
+
+        return (numberOfSentPackets - receivedPackets) / (double) numberOfSentPackets;
     }
 }

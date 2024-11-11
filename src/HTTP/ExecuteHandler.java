@@ -2,14 +2,10 @@ package HTTP;
 
 import IotDomain.Mote;
 import SelfAdaptation.Instrumentation.MoteEffector;
-import Simulation.SimulationState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import models.AdaptationModel;
-import models.AdaptationOptionModel;
-import models.ExecuteDTO;
-import models.ExecuteModel;
+import models.*;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -30,7 +26,7 @@ public class ExecuteHandler implements HttpHandler {
      * The simulation state containing information regarding the simulation.
      * @since 1.0
      */
-    private final SimulationState state;
+    private final SimulationState simulationState;
 
     /**
      * An object mapper to map objects to a JSON string.
@@ -74,8 +70,8 @@ public class ExecuteHandler implements HttpHandler {
      * Constructs an empty {@code ExecuteHandler} object.
      * @since 1.0
      */
-    public ExecuteHandler(SimulationState state) {
-        this.state = state;
+    public ExecuteHandler(SimulationState simulationState) {
+        this.simulationState = simulationState;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -139,19 +135,21 @@ public class ExecuteHandler implements HttpHandler {
             return;
         }
 
-        if (!this.state.getIsRunning()) {
+        if (!this.simulationState.getIsRunning()) {
             NOT_RUNNING.send(exchange);
             return;
         }
 
-        List<Mote> motes = this.state.getEnvironment().getMotes();
+        List<Mote> motes = this.simulationState.getEnvironment().getMotes();
 
         for (ExecuteModel input : inputs) {
             if (input.getId() < 0 || input.getId() >= motes.size()) {
                 INVALID_MOTE_ID.send(exchange);
                 return;
             }
+        }
 
+        for (ExecuteModel input : inputs) {
             Mote mote = motes.get(input.getId());
             for (AdaptationModel adaptation : input.getAdaptations()) {
                 Double value = adaptation.getValue();

@@ -335,9 +335,13 @@ public class Environment implements Serializable {
 
     }
 
-    /**
-     * A function for calculating distances from geographical positions.
-     */
+    public static double distance(GeoPosition position1, GeoPosition position2) {
+        return distance(position1.getLatitude(), position1.getLongitude(), position2.getLatitude(), position2.getLongitude());
+    }
+
+        /**
+         * A function for calculating distances from geographical positions.
+         */
     public static double distance(double lat1, double lon1, double lat2, double lon2) {
         if ((lat1 == lat2) && (lon1 == lon2)) {
             return 0;

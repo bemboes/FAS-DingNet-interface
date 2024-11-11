@@ -25,19 +25,42 @@ public class MoteWaypointRenderer implements WaypointRenderer<Waypoint>
 
     private BufferedImage img = null;
 
+    public static final int SPECIAL_MOTE_OFFSET = 1024;
+
+
     /**
      * Uses a default waypoint image
      */
-    public MoteWaypointRenderer()
-    {
+    public MoteWaypointRenderer() {
+        this(null);
+    }
+
+    private String toResourcePath(Integer digit) {
+        String base = "/GUI/MapViewer/mote";
+        String extension = ".png";
+
+        if (digit != null && digit > SPECIAL_MOTE_OFFSET) {
+            return base + ("-special-" + (digit - SPECIAL_MOTE_OFFSET)) + extension;
+        }
+
+        return base + (digit != null ? ("-" + digit) : "_after_edit") + extension;
+    }
+
+    /**
+     * Uses the digit 7-12 (representing spreading factor) to render on the mote
+     */
+    public MoteWaypointRenderer(Integer digit) {
+        boolean isSpecial = digit != null && digit > SPECIAL_MOTE_OFFSET;
+        String resourcePath = toResourcePath(digit);
+
         try
         {
-            img = ImageIO.read(DefaultWaypointRenderer.class.getResource("/GUI/MapViewer/mote_after_edit.png"));
+            img = ImageIO.read(DefaultWaypointRenderer.class.getResource(resourcePath));
             int w = img.getWidth();
             int h = img.getHeight();
             BufferedImage after = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             AffineTransform at = new AffineTransform();
-            at.scale(0.2, 0.2);
+            at.scale(isSpecial ? 0.3 : 0.2, isSpecial ? 0.3 : 0.2);
             AffineTransformOp scaleOp =
                     new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
             img = scaleOp.filter(img, after);

@@ -1,9 +1,10 @@
 package HTTP;
 
-import Simulation.SimulationState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import mappers.SimulationStateMapper;
+import models.SimulationState;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -18,7 +19,7 @@ public class MonitorHandler implements HttpHandler {
      * The current state of the simulation to be monitored.
      * @since 1.0
      */
-    private final SimulationState state;
+    private final SimulationState simulationState;
 
     /**
      * An {@code ObjectMapper} instance to map the simulation state to a JSON string.
@@ -28,11 +29,11 @@ public class MonitorHandler implements HttpHandler {
 
     /**
      * Constructs a {@code MonitorHandler} object with the simulation state {@code state}.
-     * @param state The state of the simulation to be monitored by this monitor handler.
+     * @param simulationState The state of the simulation to be monitored by this monitor handler.
      * @since 1.0
      */
-    public MonitorHandler(SimulationState state) {
-        this.state = state;
+    public MonitorHandler(SimulationState simulationState) {
+        this.simulationState = simulationState;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -45,7 +46,9 @@ public class MonitorHandler implements HttpHandler {
      */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        String data = this.objectMapper.writeValueAsString(this.state);
+        String data = this.objectMapper.writeValueAsString(
+                SimulationStateMapper.mapSimulationStateToMonitorModel(this.simulationState)
+        );
         HTTPResponse response = new HTTPResponse(HttpURLConnection.HTTP_OK, data);
 
         exchange.getResponseHeaders().add("Content-Type", "application/json");

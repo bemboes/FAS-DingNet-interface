@@ -1,6 +1,9 @@
 package SelfAdaptation.Instrumentation;
 
-import IotDomain.*;
+import IotDomain.Gateway;
+import IotDomain.LoraTransmission;
+import IotDomain.Mote;
+import IotDomain.NetworkEntity;
 import SelfAdaptation.FeedbackLoop.GenericFeedbackLoop;
 
 import java.util.LinkedList;
@@ -41,23 +44,34 @@ public class MoteProbe {
      * Returns the highest received signal by any of the gateways for a given mote .
      * @param mote The mote to generate the graph of.
      * @return The highest received signal
+     * Returns {@code null} if there have not been any transmissions and thus the signal cannot be calculated.
      */
     public Double getHighestReceivedSignal(Mote mote) {
+        if (mote.getSentTransmissions(mote.getEnvironment().getNumberOfRuns() - 1).isEmpty()) {
+            return null;
+        }
+
         LinkedList<LoraTransmission> lastTransmissions = new LinkedList<>();
         for (Gateway gateway : mote.getEnvironment().getGateways()) {
-            Boolean placed = false;
-            for (int i = gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).size() - 1; i >= 0 && !placed; i--) {
+            for (int i = gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).size() - 1; i >= 0; i--) {
                 if (gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).get(i).getSender() == mote) {
-                    lastTransmissions.add(gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).getLast());
-                    placed = true;
+                    lastTransmissions.add(gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).get(i));
+                    break;
                 }
             }
         }
+
+        // No transmissions, highest received signal cannot be calculated
+        if (lastTransmissions.isEmpty()) {
+            return null;
+        }
+
         LoraTransmission bestTransmission = lastTransmissions.getFirst();
         for (LoraTransmission transmission : lastTransmissions) {
             if (transmission.getTransmissionPower() > bestTransmission.getTransmissionPower())
                 bestTransmission = transmission;
         }
+
         return bestTransmission.getTransmissionPower();
     }
 
@@ -74,18 +88,28 @@ public class MoteProbe {
      * Returns The distance to the nearest Gateway.
      * @param mote The given mote to find the shortest distance.
      * @return The distance to the nearest Gateway.
+     * Returns {@code null} if there have not been any transmissions and thus the distance cannot be calculated.
      */
     public Double getShortestDistanceToGateway(Mote mote) {
+        if (mote.getSentTransmissions(mote.getEnvironment().getNumberOfRuns() - 1).isEmpty()) {
+            return null;
+        }
+
         LinkedList<LoraTransmission> lastTransmissions = new LinkedList<>();
-        for(Gateway gateway :mote.getEnvironment().getGateways()){
-            Boolean placed = false;
-            for(int i = gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).size()-1; i>=0 && !placed; i--) {
+        for(Gateway gateway : mote.getEnvironment().getGateways()){
+            for(int i = gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).size()-1; i>=0; i--) {
                 if(gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).get(i).getSender() == mote) {
-                    lastTransmissions.add(gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).getLast());
-                    placed = true;
+                    lastTransmissions.add(gateway.getReceivedTransmissions(mote.getEnvironment().getNumberOfRuns()-1).get(i));
+                    break;
                 }
             }
         }
+
+        // No transmissions, shortest distance to gateway cannot be calculated
+        if (lastTransmissions.isEmpty()) {
+            return null;
+        }
+
         LoraTransmission bestTransmission = lastTransmissions.getFirst();
         for (LoraTransmission transmission : lastTransmissions){
             if(Math.sqrt(Math.pow(transmission.getReceiver().getYPos()-transmission.getYPos(),2)+
@@ -94,9 +118,9 @@ public class MoteProbe {
                     Math.pow(bestTransmission.getReceiver().getXPos()-bestTransmission.getXPos(),2)))
                 bestTransmission = transmission;
         }
+
         return Math.sqrt(Math.pow(bestTransmission.getReceiver().getYPos()-bestTransmission.getYPos(),2)+
                 Math.pow(bestTransmission.getReceiver().getXPos()-bestTransmission.getXPos(),2));
-
     }
 
     /**
@@ -125,9 +149,9 @@ public class MoteProbe {
             }
         }
         if(found) {
-                if(getGenericFeedbackLoop().isActive()) {
-                    getGenericFeedbackLoop().adapt(sender, gateway);
-                }
+            if(getGenericFeedbackLoop().isActive()) {
+                getGenericFeedbackLoop().adapt(sender, gateway);
+            }
         }
     }
 

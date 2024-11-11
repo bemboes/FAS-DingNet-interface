@@ -2,9 +2,8 @@ package GUI.MapViewer;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.painter.AbstractPainter;
@@ -19,8 +18,7 @@ import org.jxmapviewer.viewer.WaypointRenderer;
  */
 public class MoteWaypointPainter<W extends Waypoint> extends AbstractPainter<JXMapViewer>
 {
-    private WaypointRenderer<? super W> renderer = new MoteWaypointRenderer();
-    private Set<W> waypoints = new HashSet<W>();
+    private final LinkedHashMap<W, WaypointRenderer<? super W>> waypointRendererMap = new LinkedHashMap<>();
 
     /**
      * Creates a new instance of WaypointPainter
@@ -31,13 +29,31 @@ public class MoteWaypointPainter<W extends Waypoint> extends AbstractPainter<JXM
         setCacheable(false);
     }
 
+    public MoteWaypointPainter(List<W> waypoints) {
+        super();
+        this.setWaypointsRendererMap(
+                waypoints.stream().collect(
+                        Collectors.toMap(w -> w, w -> new MoteWaypointRenderer())
+                )
+        );
+    }
+
+    public MoteWaypointPainter(LinkedHashMap<W, Integer> waypoints) {
+        super();
+        this.setWaypointsRendererMap(
+                waypoints.keySet().stream().collect(
+                        Collectors.toMap(w -> w, w -> new MoteWaypointRenderer(waypoints.get(w)))
+                )
+        );
+    }
+
+
     /**
      * Sets the waypoint renderer to use when painting waypoints
      * @param r the new WaypointRenderer to use
      */
-    public void setRenderer(WaypointRenderer<W> r)
-    {
-        this.renderer = r;
+    public void setRenderer(WaypointRenderer<W> r, W w) {
+        this.waypointRendererMap.put(w, r);
     }
 
     /**
@@ -46,23 +62,31 @@ public class MoteWaypointPainter<W extends Waypoint> extends AbstractPainter<JXM
      */
     public Set<W> getWaypoints()
     {
-        return Collections.unmodifiableSet(waypoints);
+        return Collections.unmodifiableSet(waypointRendererMap.keySet());
     }
 
     /**
      * Sets the current set of waypoints to paint
      * @param waypoints the new Set of Waypoints to use
      */
-    public void setWaypoints(Set<? extends W> waypoints)
+    public void setWaypointsRendererMap(Map<W, WaypointRenderer<? super W>> waypoints)
     {
-        this.waypoints.clear();
-        this.waypoints.addAll(waypoints);
+        this.waypointRendererMap.clear();
+        this.waypointRendererMap.putAll(waypoints);
+    }
+
+    public void setWaypoints(Set<? extends W> waypoints) {
+        this.setWaypointsRendererMap(
+                waypoints.stream().collect(
+                        Collectors.toMap(w -> w, w -> new MoteWaypointRenderer())
+                )
+        );
     }
 
     @Override
     protected void doPaint(Graphics2D g, JXMapViewer map, int width, int height)
     {
-        if (renderer == null)
+        if (waypointRendererMap == null)
         {
             return;
         }
@@ -71,9 +95,8 @@ public class MoteWaypointPainter<W extends Waypoint> extends AbstractPainter<JXM
 
         g.translate(-viewportBounds.getX(), -viewportBounds.getY());
 
-        for (W w : getWaypoints())
-        {
-            renderer.paintWaypoint(g, map, w);
+        for (W w : waypointRendererMap.keySet()) {
+            waypointRendererMap.get(w).paintWaypoint(g, map, w);
         }
 
         g.translate(viewportBounds.getX(), viewportBounds.getY());

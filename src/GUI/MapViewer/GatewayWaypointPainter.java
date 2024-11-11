@@ -1,15 +1,14 @@
 package GUI.MapViewer;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.jxmapviewer.JXMapViewer;
 import org.jxmapviewer.painter.AbstractPainter;
 import org.jxmapviewer.viewer.Waypoint;
 import org.jxmapviewer.viewer.WaypointRenderer;
+
+import java.awt.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Paints waypoints on the JXMapViewer. This is an
@@ -30,6 +29,13 @@ public class GatewayWaypointPainter<W extends Waypoint> extends AbstractPainter<
         setAntialiasing(true);
         setCacheable(false);
     }
+
+
+    public GatewayWaypointPainter(Set<W> waypoints) {
+        super();
+        this.setWaypoints(waypoints);
+    }
+
 
     /**
      * Sets the waypoint renderer to use when painting waypoints
